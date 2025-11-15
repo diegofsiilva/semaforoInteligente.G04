@@ -1,7 +1,7 @@
 # Ponderada Semáforo Inteligente G04
 
 ## Integrantes:
-
+ 
 Antônio André
 
 Breno Silva
