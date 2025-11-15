@@ -1,5 +1,5 @@
 # Ponderada Semáforo Inteligente G04
-
+ 
 ## Integrantes:
  
 Antônio André
@@ -32,7 +32,11 @@ O LDR está ligado no pino analógico 34 do ESP32. Este resistor detecta a inten
 
 **Como os dois ESP32 se comunicam no sistema:**
 
-Por meio do Ubidots, que haje como uma ponte na troca de informações, o ESP32 "1" é responsável pela leitura do sensor LDR, que coleta o valor e envia esses dados para o Ubidots. O ESP32 "2", que controla os semáforos, acessa o Ubidots para obter os valores enviados, e, com base nessa captação, decide como o semáforo deve operar.
+Por meio do Ubidots, que haje como uma ponte na troca de informações, o ESP32 "1" é responsável pela leitura do sensor LDR, que coleta o valor e envia esses dados para o Ubidots. O ESP32 "2", que controla os semáforos, acessa o Ubidots para obter os valores enviados, e, com base nessa captação, decide como o semáforo deve operar, além disso, com o Ubidots, é possível controlar a velocidade dos semáforos.
+
+**Interface Ubidots:**
+
+![Interface Ubidots](./ubidots.png)
 
 **LINK YOUTUBE**
 https://www.youtube.com/watch?v=AOWGoT1VtBk
