@@ -12,6 +12,7 @@ const char *WIFI_SSID = "Inteli.Iot";
 const char *WIFI_PASS = "%(Yk(sxGMtvFEs.3";
 const char *DEVICE_LABEL = "semaforo_inteligente";
 const char *VARIABLE_MODO = "modo_dia"; // Recebe do ESP32 #1
+const char *VARIABLE_VELOCIDADE = "velocidade_semaforo"; // Controle de velocidade (multiplicador)
 const char *CLIENT_ID = "esp32_semaforos";
 const int SUBSCRIBER_FREQUENCY = 500; // Lê a cada 500ms para sincronização
 unsigned long timer_subscribe;
@@ -30,8 +31,9 @@ unsigned long timer_subscribe;
  * Variáveis do Sistema
  ****************************************/
 unsigned long timer;
-const int TEMPO_ESPERA_SEMAFORO = 2000;
-const int TEMPO_PISCA_SEMAFORO = 500;
+int TEMPO_ESPERA_SEMAFORO = 2000;
+int TEMPO_PISCA_SEMAFORO = 500;
+float velocidade_semaforo = 1.0; // Multiplicador de velocidade (padrão 1.0)
 int ESTADO_PISCA = 0;
 int ESTADO_SEMAFORO = 0;
 bool modo_dia_recebido = true;
@@ -57,6 +59,12 @@ void callback(char *topic, byte *payload, unsigned int length) {
     Serial.print("Modo atualizado: ");
     Serial.println(modo_dia_recebido ? "DIA" : "NOITE");
   }
+  else if (strstr(topic, VARIABLE_VELOCIDADE) != NULL) {
+    velocidade_semaforo = value;
+    if (velocidade_semaforo <= 0) velocidade_semaforo = 0.1; // Evitar valores inválidos
+    Serial.print("Velocidade atualizada: ");
+    Serial.println(velocidade_semaforo);
+  }
 }
 /****************************************
  * Funções dos Semáforos
@@ -73,7 +81,7 @@ void acender_semaforos_dia() {
       digitalWrite(VERMELHO2, 1);
       digitalWrite(AMARELO2, 0);
       digitalWrite(VERDE2, 0);
-      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO) {
+      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO / velocidade_semaforo) {
         digitalWrite(VERDE1, 0);
         timer = millis();
         ESTADO_SEMAFORO = 1;
@@ -88,7 +96,7 @@ void acender_semaforos_dia() {
       digitalWrite(VERMELHO2, 1);
       digitalWrite(AMARELO2, 0);
       digitalWrite(VERDE2, 0);
-      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO) {
+      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO / velocidade_semaforo) {
         digitalWrite(AMARELO1, 0);
         timer = millis();
         ESTADO_SEMAFORO = 2;
@@ -103,7 +111,7 @@ void acender_semaforos_dia() {
       digitalWrite(VERDE2, 1);
       digitalWrite(AMARELO2, 0);
       digitalWrite(VERMELHO2, 0);
-      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO) {
+      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO / velocidade_semaforo) {
         digitalWrite(VERDE2, 0);
         timer = millis();
         ESTADO_SEMAFORO = 3;
@@ -118,7 +126,7 @@ void acender_semaforos_dia() {
       digitalWrite(AMARELO2, 1);
       digitalWrite(VERDE2, 0);
       digitalWrite(VERMELHO2, 0);
-      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO) {
+      if (millis() - timer >= TEMPO_ESPERA_SEMAFORO / velocidade_semaforo) {
         digitalWrite(VERMELHO1, 0);
         digitalWrite(AMARELO2, 0);
         timer = millis();
@@ -136,7 +144,7 @@ void acender_semaforos_noite(){
       digitalWrite(AMARELO2, 1);
       digitalWrite(VERDE2, 0);
       digitalWrite(VERMELHO2, 0);
-      if(millis() - timer >= TEMPO_PISCA_SEMAFORO){
+      if(millis() - timer >= TEMPO_PISCA_SEMAFORO / velocidade_semaforo){
         timer = millis();
         ESTADO_PISCA = 1;
       }
@@ -144,7 +152,7 @@ void acender_semaforos_noite(){
     case 1: // Ambos amarelos apagados
       digitalWrite(AMARELO1, 0);
       digitalWrite(AMARELO2, 0);
-      if(millis() - timer >= TEMPO_PISCA_SEMAFORO){
+      if(millis() - timer >= TEMPO_PISCA_SEMAFORO / velocidade_semaforo){
         timer = millis();
         ESTADO_PISCA = 0;
       }
@@ -197,6 +205,7 @@ void loop() {
   // Subscrever para receber dados do ESP32 #1
   if (millis() - timer_subscribe > SUBSCRIBER_FREQUENCY) {
     ubidots.subscribeLastValue(DEVICE_LABEL, VARIABLE_MODO);
+    ubidots.subscribeLastValue(DEVICE_LABEL, VARIABLE_VELOCIDADE);
     timer_subscribe = millis();
   }
   // Os valores são recebidos automaticamente através do callback

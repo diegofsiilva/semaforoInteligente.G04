@@ -22,7 +22,7 @@ unsigned long timer_publish;
 /****************************************
  * Variáveis do Sistema
  ****************************************/
-const int LIMITE_LDR_NOITE = 500;
+const int LIMITE_LDR_NOITE = 1000;
 bool modo_dia = false;
 bool modo_anterior = false;
 Ubidots ubidots(UBIDOTS_TOKEN, CLIENT_ID);
